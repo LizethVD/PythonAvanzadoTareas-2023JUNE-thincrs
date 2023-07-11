@@ -19,6 +19,8 @@
 # funcione correctamente y que contenga el archivo README
 # Adicionalmente hacer 3 funciones mas a gusto propio
 
+from datetime import datetime
+
 inventario = []
 
 
@@ -37,6 +39,7 @@ def agregar_nuevo_articulo():
         precio = float(input("Introduce el precio: "))
         tipo = input("Introduce el tipo: ")
         tamano = input("Introduce el tamaño: ")
+        date=datetime.today().strftime('%Y-%m-%d')
         articulo = {
             "id": len(inventario) + 1,
             "nombre": nombre,
@@ -44,6 +47,7 @@ def agregar_nuevo_articulo():
             "precio": precio,
             "tipo": tipo,
             "tamano": tamano,
+            "last_update":date
         }
         inventario.append(articulo)
         print(f"El artículo {nombre}, se agrego satisfactoriamente.")
@@ -59,17 +63,19 @@ def actualizar_articulo():
             articulo["precio"] = input("Introduce el nuevo precio: ")
             articulo["tipo"] = input("Introduce el nuevo tipo: ")
             articulo["tamano"] = input("Introduce el nuevo tamaño: ")
+            articulo["last_update"]=datetime.today().strftime('%Y-%m-%d')
             print(f"El artículo {nombre}, se actualizo correctamente.")
 
 
 def buscar_articulos():
     option = int(
-        input("Buscar por: \n1.Nombre\n2.Tamaño\n3.Tipo\nSelecciona una opción:")
+        input("Buscar por: \n1.Nombre\n2.Tamaño\n3.Tipo\n4.Fecha\nSelecciona una opción:")
     )
     options = {
         1: lambda: buscarPorNombre(),
         2: lambda: buscarPorTam(),
         3: lambda: buscarPorTipo(),
+        4: lambda: buscarPorFecha(),
     }
     options.get(option, lambda: print("Opcion no válida"))()
 
@@ -102,6 +108,16 @@ def buscarPorTipo():
     filtered_articulos = list(
         filter(
             lambda articulo: tipo.lower() in articulo.get("tipo").lower(), inventario
+        )
+    )
+    print("Los articulos encontrados: ")
+    imprimir_articulos(filtered_articulos)
+
+def buscarPorFecha():
+    fecha = input("Introduce la fecha: ")
+    filtered_articulos = list(
+        filter(
+            lambda articulo: fecha.lower() in articulo.get("last_update").lower(), inventario
         )
     )
     print("Los articulos encontrados: ")
@@ -157,33 +173,61 @@ def calcular_total_inventario():
 
 def imprimir_articulos(articulos):
     print(
-        "| {:10} | {:15} | {:10}| {:10} | {:10}| {:10}".format(
-            "ID", "NOMBRE", "TIPO", "TAMAÑO", "CANTIDAD", "PRECIO"
+        "| {:10} | {:15} | {:10} | {:10} | {:10} | {:10} | {:10}".format(
+            "ID", "NOMBRE", "TIPO", "TAMAÑO", "CANTIDAD", "PRECIO","FECHA"
         )
     )
     for articulo in articulos:
         print(
-            "| {:10} | {:15} | {:10}| {:10} | {:10}| {:10}".format(
+            "| {:10} | {:15} | {:11}| {:10} | {:10} | {:10} | {:10}".format(
                 articulo.get("id"),
                 articulo.get("nombre"),
                 articulo.get("tipo"),
                 articulo.get("tamano"),
                 articulo.get("cantidad"),
                 articulo.get("precio"),
+                articulo.get("last_update"),
             )
         )
+        print("\n")
+        
+def generar_archivo_txt():
+    separador="+"+"-"*100+"+"
+    archivo= open("inventario_reporte.txt","w")
+    archivo.write("Control de inventario")
+    archivo.write(separador)
+    archivo.write("\n")
+    archivo.write( "| {:10} | {:15} | {:10} | {:10} | {:10} | {:10} | {:10}".format(
+            "ID", "NOMBRE", "TIPO", "TAMAÑO", "CANTIDAD", "PRECIO","FECHA"
+        ))
+    archivo.write("\n")
+    archivo.write(separador)
+    archivo.write("\n")
+    for articulo in inventario:
+        archivo.write("| {:10} | {:15} | {:11}| {:10} | {:10} | {:10} | {:10}".format(
+                articulo.get("id"),
+                articulo.get("nombre"),
+                articulo.get("tipo"),
+                articulo.get("tamano"),
+                articulo.get("cantidad"),
+                articulo.get("precio"),
+                articulo.get("last_update"),
+            ))
+        archivo.write("\n")
+    archivo.write(separador)
+    archivo.close()
 
 
 def get_message_choice(option):
     msg = "La opción no se encontro."
-    if option == 10:
+    if option == 11:
         msg = "Has salido del control de inventario."
     return msg
 
 
 def menu_principal():
     choice = 0
-    while choice != 10:
+    while choice != 11:
         print("\n --- Control de inventarios ---")
         print("1. Agregar nuevo artículo.")
         print("2. Actualizar datos de un artículo.")
@@ -194,7 +238,8 @@ def menu_principal():
         print("7. Aumentar cantidad de un articulo")
         print("8. Calcular total del inventario.")
         print("9. Mostrar inventario.")
-        print("10. Salir")
+        print("10. Generar reporte.")
+        print("11. Salir")
         choice = int(input("Introduce una opción: "))
 
         options = {
@@ -207,6 +252,7 @@ def menu_principal():
             7: lambda: aumentar_cantidad_articulo(),
             8: lambda: calcular_total_inventario(),
             9: lambda: imprimir_articulos(inventario),
+            10:lambda:generar_archivo_txt()
         }
         options.get(choice, lambda: print(get_message_choice(choice)))()
 
